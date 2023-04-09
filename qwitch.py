@@ -11,102 +11,75 @@ import webbrowser
 
 #curl -X POST 'https://id.twitch.tv/oauth2/token' -H 'Content-Type: application/x-www-form-urlencoded' -d 'client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&client_secret=qfq4qiv8xuc852fc7q3gg15gikav4f&grant_type=client_credentials'
 
-#curl -X GET 'https://api.twitch.tv/helix/videos?user_id=229729353&type=archive' -H 'Authorization: Bearer kt61fn9i7bvvvuj4we4evt9onpd4bz' -H 'Client-Id: s3e3q8l6ub08tf7ka9tg2myvetf5cf'
+#curl -X GET 'https://api.twitch.tv/helix/videos?user_id=229729353&type=archive' -H 'Authorization: Bearer h1ya2xu34jicptd4aasl34w43unon3' -H 'Client-Id: s3e3q8l6ub08tf7ka9tg2myvetf5cf'
 
-#curl -X GET 'https://id.twitch.tv/oauth2/validate' -H 'Authorization: OAuth kt61fn9i7bvvvuj4we4evt9onpd4bz'
+#curl -X GET 'https://id.twitch.tv/oauth2/validate' -H 'Authorization: OAuth 9a0l0jc0u2jrauvrgxynui56q4zkb4'
 
 #curl -X GET 'https://api.twitch.tv/helix/channels/followed?user_id=38864397' -H 'Authorization: Bearer kt61fn9i7bvvvuj4we4evt9onpd4bz' -H 'Client-Id: s3e3q8l6ub08tf7ka9tg2myvetf5cf'
 
 #https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&redirect_uri=http://localhost:3000&scope=user%3Aread%3Afollows
+#http://localhost:3000/#access_token=hcuy43cnp5p93c92e00wz03ehe2z3q&scope=user%3Aread%3Afollows&token_type=bearer
 
-CLIENT_ID = "s3e3q8l6ub08tf7ka9tg2myvetf5cf"
-CLIENT_SECRET = "qfq4qiv8xuc852fc7q3gg15gikav4f"
+CLIENT_ID = 's3e3q8l6ub08tf7ka9tg2myvetf5cf'
 
 home_dir = os.path.expanduser('~')
 home_dir += '/Library/Application Support'
 if not os.path.exists(home_dir + '/qwitch/cache'):
     os.makedirs(os.path.dirname(home_dir + '/qwitch/cache'), exist_ok=True)
 
-def auth_api(client_id = CLIENT_ID, client_secret = CLIENT_SECRET):
-    data = {
-        'client_id': client_id,
-        'client_secret': client_secret,
-        'grant_type': 'client_credentials'
-    }
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    res_post = requests.post(url = 'https://id.twitch.tv/oauth2/token', data = data, headers = headers)
-    res_post = res_post.json()
-    store_auth(res_post)
-    return res_post['access_token']
+def auth_api():
+    print('A browser page will open. Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
+    time.sleep(2)
+    webbrowser.open('https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&redirect_uri=http://localhost:3000&scope=user%3Aread%3Afollows+user%3Aread%3Asubscriptions', new=1, autoraise=True)
+    auth_url = input('Enter the full URL here: ')
+    token = re.findall('access_token=([a-z0-9]{30})\&scope', auth_url)
+    print(token)
+    auth_data = validate_token(token=token[0])
+    if auth_data.status_code == 401:
+        print('The URL you entered may be invalid. Try again.')
+        exit()
+    auth_data = auth_data.json()
+    auth_data['access_token'] = token[0]
+    store_auth(auth_data)
+    print('You can close the page that was opened.')
+    return token[0]
+
+def validate_token(token):
+    url = 'https://id.twitch.tv/oauth2/validate'
+    header = {
+            'Authorization': 'OAuth ' + token
+        }
+    res_get = requests.get(url = url, headers = header)
+    return res_get
 
 def write_streamlink_config():
     if not os.path.exists(home_dir + '/streamlink/config.twitch'):
         os.makedirs(os.path.dirname(home_dir + '/streamlink/config.twitch'), exist_ok=True)
-        token = input('Enter your auth-token cookie value: ')
-        i=0
-        while True:
-            if i == 3:
-                print('Too many failed attempts. Stopping for now.')
-                exit()
-            if not re.match('[a-z0-9]{30}', token):
-                token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
-                i += 1
-                continue
-            break
-        config = 'twitch-api-header=Authorization=OAuth ' + token + '\nplayer-args=--file-caching 3000 --network-caching 3000\nplayer-passthrough=hls'
+        token = check_auth()
+        config = 'twitch-api-header=Authorization=Bearer ' + token + '\nplayer-args=--file-caching 3000 --network-caching 3000\nplayer-passthrough=hls'
         with open(home_dir + '/streamlink/config.twitch', 'w', encoding='utf-8') as file:
             file.write(config)
 
 def check_streamlink_config():
-    url = 'https://id.twitch.tv/oauth2/validate'
     old_token = ''
     with open(home_dir + '/streamlink/config.twitch', 'r', encoding='utf-8') as file:
         content = file.read()
-    token = re.findall('twitch-api-header=Authorization=OAuth\s([a-z0-9]{30})', content)
+    token = re.findall('twitch-api-header=Authorization=Bearer\s+([a-z0-9]{30})', content)
     if not token:
-        token = input('\nNo auth-token cookie value was found.\nEnter one now: ')
-        i=0
-        while True:
-            if i == 2:
-                exit('Too many failed attempts. Stopping for now.')
-            if not re.match('[a-z0-9]{30}', token):
-                token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
-                i += 1
-                continue
-            break
+        token = check_auth()
     if isinstance(token, list):
         token = token[0]
         old_token = token
-    j = 0
-    while True:
-        if j == 2:
-            exit('Too many failed attempts. Stopping for now.')
-        header = {
-            'Authorization': 'OAuth ' + token
-        }
-        res_get = requests.get(url = url, headers = header)
-        if res_get.status_code == 401:
-            token = input('\nThe token expired or is invalid.\nEnter a new one: ')
-            i=0
-            while True:
-                if i == 2:
-                    exit('Too many failed attempts. Stopping for now.')
-                if not re.match('[a-z0-9]{30}', token):
-                    token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
-                    i += 1
-                    continue
-                break
-            j += 1
-            continue
-        break
+    if old_token != '':
+        auth_token = check_auth()
+        if auth_token != token:
+            token = auth_token
     if not content:
         with open(home_dir + '/streamlink/config.twitch', 'w', encoding='utf-8') as file:
-            file.write('twitch-api-header=Authorization=OAuth ' + token + '\nplayer-args=--file-caching 3000 --network-caching 3000\nplayer-passthrough=hls')
+            file.write('twitch-api-header=Authorization=Bearer ' + token + '\nplayer-args=--file-caching 3000 --network-caching 3000\nplayer-passthrough=hls')
     elif old_token == '' and content:
         with open(home_dir + '/streamlink/config.twitch', 'a', encoding='utf-8') as file:
-            file.write('twitch-api-header=Authorization=OAuth ' + token + '\n')
+            file.write('twitch-api-header=Authorization=Bearer ' + token + '\n')
     elif token != old_token and old_token != '':
         content = content.replace(old_token, token)
         with open(home_dir + '/streamlink/config.twitch', 'w', encoding='utf-8') as file:
@@ -122,12 +95,13 @@ def store_auth(data):
 def check_auth():
     try:
         with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as cache:
-            cache_json = cache.read().json()
+            cache_json = json.loads(cache.read())
         if cache_json:
             now = int(time.time())
             exp_date = cache_json['requested_at'] + cache_json['expires_in']
             if now >= exp_date:
                 token = auth_api()
+                print(token)
                 if token:
                     return token
                 return False
@@ -144,6 +118,10 @@ def twitch_api_get(token, url):
         'Authorization': 'Bearer ' + token
     }
     res_get = requests.get(url = url, headers = headers)
+    if res_get.status_code == 401:
+        print('Your access token may have expired. Please authenticate again and try again.')
+        auth_api()
+        exit()
     return res_get.json()
 
 def get_channel_id(channel, token):
@@ -224,7 +202,6 @@ if __name__ == "__main__":
 
         try:
             channel_id = get_channel_id(channel = args.channel, token = auth_token)
-            print(channel_id)
         except RuntimeError:
             cli.error('Could not get user id for the channel name provided.')
         except:
@@ -250,7 +227,6 @@ if __name__ == "__main__":
             try:
                 check_streamlink_config()
                 url = get_vod(channel_id=channel_id, token=auth_token, keyword=args.vod)
-                print(url)
                 url = url.replace('https://www.', '')
                 print('Playing the video now...')
                 exec_streamlink(url=url)
