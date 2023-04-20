@@ -1,0 +1,19 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qwitch"
+version = "1.0.0"
+description = "Stream twitch in Quicktime"
+readme = "README.md"
+authors = [{ name = "Jean-Francois Vaduret", email = "jean.francois.vaduret@gmail.com" }]
+dependencies = [
+    "requests"
+]
+requires-python = ">=3.3"
+
+[project.scripts]
+qwitch = "qwitch.qwitch"
