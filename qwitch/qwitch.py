@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 except:
                     cli.error('Could not get the livestream feed.')
         elif args.vod:
-            if re.match('^[0-9]{9}$', args.vod):
+            if re.match('^[0-9]{9,10}$', args.vod):
                 url = 'twitch.tv/videos/' + args.vod
                 api.exec_streamlink(url=url)
                 cli.exit()

@@ -91,6 +91,11 @@ def print_vod_list(channel_id, token):
         print('Published on: ' + date)
         print('Duration:     ' + video['duration'])
         print('URL:          ' + video['url'])
+        resp = input('\nPlay this video? [y/N] ')
+        if str(resp).lower() == 'y':
+            url = video['url'].replace('https://www.', '')
+            exec_streamlink(url = url)
+            break
 
 def exec_streamlink(url):
     cmd_str = 'open -a "quicktime player" $(streamlink ' + url + ' best --stream-url) ;'
