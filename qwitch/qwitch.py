@@ -46,6 +46,8 @@ if __name__ == "__main__":
             elif args.Videos:
                 try:
                     api.print_vod_list(channel_id=channel_id, token=auth_token)
+                except KeyboardInterrupt:
+                    exit()
                 except:
                     cli.error('Could not retrieve the video list')
             elif args.vod:

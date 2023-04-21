@@ -79,7 +79,6 @@ def print_vod_list(channel_id, token):
     res_get = twitch_api_get(token = token, url = url)
     res_get = res_get['data']
     first = True
-    print(len(res_get))
     for video in res_get:
         if first:
             print('Here are the latest videos (most recent first):\n')
