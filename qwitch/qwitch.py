@@ -3,8 +3,7 @@ import re
 import config
 import api
 
-
-if __name__ == "__main__":
+def main():
     try:
         cli = argparse.ArgumentParser(
             prog = 'qwitch',
@@ -14,6 +13,7 @@ if __name__ == "__main__":
 
         cli.add_argument('channel', nargs='?', default = False)
         cli.add_argument('-d', '--debug', action = 'store_true', help= 'enable debugging.')
+        cli.add_argument('--version', action='version', version='%(prog)s 1.1.0')
 
         group.add_argument('-l', '--last', action = 'store_true', help= 'play the most recent video of the channel.')
         group.add_argument('-V', '--Videos', action = 'store_true', help= 'list the last 20 videos of the channel.')
@@ -82,3 +82,6 @@ if __name__ == "__main__":
                 cli.error('Could not get the livestream list.')
     except KeyboardInterrupt:
         exit()
+
+if __name__ == "__main__":
+    main()
