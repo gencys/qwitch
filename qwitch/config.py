@@ -22,7 +22,7 @@ def debug_log(*args):
 
 def auth_api():
     print('A browser page will open. Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
-    time.sleep(2)
+    time.sleep(5)
     webbrowser.open('https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&redirect_uri=http://localhost:3000&scope=user_read+user_subscriptions+user%3Aread%3Afollows', new=1, autoraise=True)
     auth_url = input('Enter the full URL here: ')
     token = re.findall('access_token=([a-z0-9]{30})\&scope', auth_url)
