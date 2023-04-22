@@ -13,4 +13,4 @@ authors = [{ name = "Jean-Francois Vaduret", email = "jean.francois.vaduret@gmai
 dependencies = [
     "requests"
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
