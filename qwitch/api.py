@@ -1,7 +1,7 @@
 import requests
 import json
 import subprocess
-import config
+from . import config
 
 CLIENT_ID = 's3e3q8l6ub08tf7ka9tg2myvetf5cf'
 

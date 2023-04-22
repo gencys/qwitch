@@ -1,7 +1,7 @@
 import argparse
 import re
-import config
-import api
+from . import config
+from . import api
 
 def main():
     try:
