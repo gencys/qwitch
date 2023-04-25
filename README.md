@@ -22,7 +22,7 @@ First, open your favorite web browser and log into your Twitch account. Then you
 - Navigate to the "Storage" or "Application" tab on the little window that opened
 - Expand the "Cookies" folder
 - Click on "twitch.tv"
-- Search for the "auth-token" entry and copy its value
+- Search for the "auth-token" entry and copy its value (a 30-character string containing numbers and letters)
 
 Alternatively, you can use a browser extension like cookies.txt for Firefox. This will generate a text file in which you'll need to search for the "auth-token" entry.
 
