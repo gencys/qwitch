@@ -20,6 +20,27 @@ def debug_log(*args):
             print(arg)
         print('\n')
 
+def ask_for_token(tries = 3, validate = False):
+    i=0
+    token = input('Enter your auth-token cookie value: ')
+    debug_log('Got token from input:', token)
+    while True:
+        if i == tries - 1:
+            exit('Too many failed attempts. Stopping for now.')
+        if not re.match('[a-z0-9]{30}', token):
+            token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
+            debug_log('Got token from input:', token)
+            i += 1
+            continue
+        if validate:
+            res_get = validate_token(token = token)
+            if res_get.status_code == 401:
+                token = input('\nThe token expired or is invalid.\nEnter a new one: ')
+                debug_log('Got token from input:', token)
+                continue
+        break
+    return token
+
 def auth_api():
     print('A browser page will open. Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
     time.sleep(5)
@@ -33,100 +54,85 @@ def auth_api():
         exit()
     auth_data = auth_data.json()
     auth_data['access_token'] = token[0]
-    store_auth(auth_data)
+    store_auth(data = auth_data)
     print('You can close the page that was opened.')
     return token[0]
 
 def validate_token(token: str):
     url = 'https://id.twitch.tv/oauth2/validate'
     header = {
-            'Authorization': 'OAuth ' + token
-        }
+        'Authorization': 'OAuth ' + token
+    }
     res_get = requests.get(url = url, headers = header)
     debug_log('Validation response:', res_get.json())
     return res_get
 
 def write_streamlink_config():
-    if not os.path.exists(home_dir + '/streamlink/config.twitch'):
-        os.makedirs(os.path.dirname(home_dir + '/streamlink/config.twitch'), exist_ok=True)
-        token = input('Enter your auth-token cookie value: ')
-        debug_log('Got token from input:', token)
-        i=0
-        while True:
-            if i == 3:
-                print('Too many failed attempts. Stopping for now.')
-                exit()
-            if not re.match('[a-z0-9]{30}', token):
-                token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
-                debug_log('Got token from input:', token)
-                i += 1
-                continue
-            break
-        config = 'twitch-api-header=Authorization=OAuth ' + token + '\nplayer-args=--file-caching 3000 --network-caching 3000\nplayer-passthrough=hls'
-        with open(home_dir + '/streamlink/config.twitch', 'w', encoding='utf-8') as file:
-            file.write(config)
+    if os.path.exists(home_dir + '/qwitch/cache'):
+        token = ask_for_token(validate = True)
+        with open(home_dir + '/qwitch/cache', 'wr', encoding='utf-8') as file:
+            cache_json = json.loads(file.read())
+            if cache_json[1]:
+                cache_json[1]['twitch-api-header'] = 'Authorization=OAuth ' + token
+            else:
+                config = {
+                    'twitch-api-header': 'Authorization=OAuth ' + token,
+                    'player-args': '--file-caching 3000 --network-caching 3000',
+                    'player-passthrough': 'hls'
+                }
+                cache_json[1] = config
+            config = cache_json[1]
+            json.dump(cache_json, file, ensure_ascii=False, indent=4)
+        return config
+    return False
 
 def check_streamlink_config():
     old_token = ''
-    with open(home_dir + '/streamlink/config.twitch', 'r', encoding='utf-8') as file:
-        content = file.read()
+    with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as file:
+        content = json.loads(file.read())
         debug_log('Content of config:', content)
-    token = re.findall('twitch-api-header=Authorization=OAuth\s([a-z0-9]{30})', content)
+    if content[1]:
+        if content[1]['twitch-api-header']:
+            token = re.findall('Authorization=OAuth\s([a-z0-9]{30})', content[1]['twitch-api-header'])
+        else:
+            config = write_streamlink_config()
+            return config
+    else:
+        config = write_streamlink_config()
+        return config
     debug_log('Token from config:', token)
-    if not token:
-        token = input('\nNo auth-token cookie value was found.\nEnter one now: ')
-        debug_log('Got token from input:', token)
-        i=0
-        while True:
-            if i == 2:
-                exit('Too many failed attempts. Stopping for now.')
-            if not re.match('[a-z0-9]{30}', token):
-                token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
-                debug_log('Got token from input:', token)
-                i += 1
-                continue
-            break
-    if isinstance(token, list):
-        token = token[0]
-        old_token = token
+    token = token[0]
+    old_token = token
     j = 0
     while True:
         if j == 2:
             exit('Too many failed attempts. Stopping for now.')
         res_get = validate_token(token = token)
         if res_get.status_code == 401:
-            token = input('\nThe token expired or is invalid.\nEnter a new one: ')
-            debug_log('Got token from input:', token)
-            i=0
-            while True:
-                if i == 2:
-                    exit('Too many failed attempts. Stopping for now.')
-                if not re.match('[a-z0-9]{30}', token):
-                    token = input('\nThis is does not look like an auth-token.\nEnter a valid token: ')
-                    debug_log('Got token from input:', token)
-                    i += 1
-                    continue
-                break
+            print('\nThe token expired or is invalid.')
+            token = ask_for_token()
             j += 1
             continue
         break
-    if not content:
-        with open(home_dir + '/streamlink/config.twitch', 'w', encoding='utf-8') as file:
-            file.write('twitch-api-header=Authorization=OAuth ' + token + '\nplayer-args=--file-caching 3000 --network-caching 3000\nplayer-passthrough=hls')
-    elif old_token == '' and content:
-        with open(home_dir + '/streamlink/config.twitch', 'a', encoding='utf-8') as file:
-            file.write('twitch-api-header=Authorization=OAuth ' + token + '\n')
-    elif token != old_token and old_token != '':
-        content = content.replace(old_token, token)
-        with open(home_dir + '/streamlink/config.twitch', 'w', encoding='utf-8') as file:
-            file.write(content)
+    if old_token != token:
+        content[1]['twitch-api-header'] = 'Authorization=OAuth ' + token
+        with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
+            json.dump(content, file, ensure_ascii=False, indent=4)
     debug_log('A valid auth-token was found. Proceeding...')
+    return content[1]
 
 def store_auth(data):
     now = int(time.time())
     data['requested_at'] = now - 1
-    with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+    if os.path.exists(home_dir + '/qwitch/cache'):
+        with open(home_dir + '/qwitch/cache', 'wr', encoding='utf-8') as file:
+            cache_json = json.loads(file.read())
+            cache_json[0] = data
+            json.dump(cache_json, file, ensure_ascii=False, indent=4)
+    else:
+        with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
+            data = [data]
+            json.dump(data, file, ensure_ascii=False, indent=4)
 
 def check_auth():
     try:
@@ -135,14 +141,14 @@ def check_auth():
             debug_log('check_auth(): Config read:', cache_json)
         if cache_json:
             now = int(time.time())
-            exp_date = cache_json['requested_at'] + cache_json['expires_in']
+            exp_date = cache_json[0]['requested_at'] + cache_json[0]['expires_in']
             if now >= exp_date:
                 token = auth_api()
                 debug_log('Token returned by auth_api():', token)
                 if token:
                     return token
                 return False
-            return cache_json['access_token']
+            return cache_json[0]['access_token']
     except:
         token = auth_api()
         debug_log('Token returned by auth_api() after error:', token)

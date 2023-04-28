@@ -21,8 +21,8 @@ def main():
         group.add_argument('-v', '--vod', action = 'store', type = str, help= 'search for a video by keyword(s) or ID.')
         args = cli.parse_args()
 
-        config.write_streamlink_config()
         auth_token = config.check_auth()
+        streamlink_config = config.check_streamlink_config()
         if not auth_token:
             cli.error('Could not authenticate in the Twitch API')
 
@@ -38,7 +38,6 @@ def main():
                 cli.error('Something unknown went wrong.')
 
             if args.last:
-                config.check_streamlink_config()
                 url = api.get_vod(channel_id=channel_id, token=auth_token)
                 url = url.replace('https://www.', '')
                 config.debug_log('Playing the video now...')
@@ -52,7 +51,6 @@ def main():
                     cli.error('Could not retrieve the video list')
             elif args.vod:
                 try:
-                    config.check_streamlink_config()
                     url = api.get_vod(channel_id=channel_id, token=auth_token, keyword=args.vod)
                     url = url.replace('https://www.', '')
                     config.debug_log('Playing the video now...')
@@ -61,7 +59,6 @@ def main():
                     cli.error('Could not find a video that matched the keyword.')
             else:
                 try:
-                    config.check_streamlink_config()
                     url = 'twitch.tv/' + args.channel
                     config.debug_log('Playing the livestream now...')
                     api.exec_streamlink(url=url)

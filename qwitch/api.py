@@ -1,6 +1,7 @@
 import requests
 import json
 import subprocess
+from streamlink import Streamlink
 from . import config
 
 CLIENT_ID = 's3e3q8l6ub08tf7ka9tg2myvetf5cf'
@@ -97,5 +98,8 @@ def print_vod_list(channel_id, token):
             break
 
 def exec_streamlink(url):
-    cmd_str = 'open -a "quicktime player" $(streamlink ' + url + ' best --stream-url) ;'
+    session = Streamlink()
+    session.set_plugin_option("twitch", "api-header", [('Authorization', 'OAuth 62dr51b7l4e4202t3iia6s93gr6eh9')])
+    streamurl = session.streams(url)['best'].url
+    cmd_str = 'open -a "quicktime player" '+streamurl+';'
     subprocess.run(cmd_str, shell=True)
