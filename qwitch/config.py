@@ -70,18 +70,17 @@ def validate_token(token: str):
 def write_streamlink_config():
     if os.path.exists(home_dir + '/qwitch/cache'):
         token = ask_for_token(validate = True)
-        with open(home_dir + '/qwitch/cache', 'wr', encoding='utf-8') as file:
+        with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as file:
             cache_json = json.loads(file.read())
-            if cache_json[1]:
-                cache_json[1]['twitch-api-header'] = 'Authorization=OAuth ' + token
-            else:
-                config = {
-                    'twitch-api-header': 'Authorization=OAuth ' + token,
-                    'player-args': '--file-caching 3000 --network-caching 3000',
-                    'player-passthrough': 'hls'
-                }
-                cache_json[1] = config
-            config = cache_json[1]
+        if len(cache_json) == 2:
+            cache_json[1].update({'twitch-api-header': 'Authorization=OAuth ' + token})
+        else:
+            config = {
+                'twitch-api-header': 'Authorization=OAuth ' + token
+            }
+            cache_json.append(config)
+        config = cache_json[1]
+        with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
             json.dump(cache_json, file, ensure_ascii=False, indent=4)
         return config
     return False
@@ -91,8 +90,8 @@ def check_streamlink_config():
     with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as file:
         content = json.loads(file.read())
         debug_log('Content of config:', content)
-    if content[1]:
-        if content[1]['twitch-api-header']:
+    if len(content) == 2:
+        if 'twitch-api-header' in content[1]:
             token = re.findall('Authorization=OAuth\s([a-z0-9]{30})', content[1]['twitch-api-header'])
         else:
             config = write_streamlink_config()

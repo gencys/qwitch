@@ -1,7 +1,8 @@
 import requests
 import json
 import subprocess
-from streamlink import Streamlink
+import re
+import streamlink
 from . import config
 
 CLIENT_ID = 's3e3q8l6ub08tf7ka9tg2myvetf5cf'
@@ -23,7 +24,7 @@ def get_livestreams(token):
     with open(config.home_dir + '/qwitch/cache', 'r', encoding='utf-8') as cache:
             cache_json = json.loads(cache.read())
             config.debug_log('get_livestreams(): Config read:', cache_json)
-    url = 'https://api.twitch.tv/helix/channels/followed?user_id=' + cache_json['user_id']
+    url = 'https://api.twitch.tv/helix/channels/followed?user_id=' + cache_json[0]['user_id']
     res_get = twitch_api_get(token = token, url = url)
     url = 'https://api.twitch.tv/helix/streams?type=live'
     i = 0
@@ -94,12 +95,30 @@ def print_vod_list(channel_id, token):
         resp = input('\nPlay this video? [y/N] ')
         if str(resp).lower() == 'y':
             url = video['url'].replace('https://www.', '')
-            exec_streamlink(url = url)
-            break
+            return url
+    return None
 
-def exec_streamlink(url):
-    session = Streamlink()
-    session.set_plugin_option("twitch", "api-header", [('Authorization', 'OAuth 62dr51b7l4e4202t3iia6s93gr6eh9')])
-    streamurl = session.streams(url)['best'].url
-    cmd_str = 'open -a "quicktime player" '+streamurl+';'
-    subprocess.run(cmd_str, shell=True)
+def exec_streamlink(url, streamlink_config, quality = None):
+    session = streamlink.Streamlink()
+    for key in streamlink_config:
+        if key == 'default-stream':
+            continue
+        if re.match('^twitch-', key):
+            option_key = key.replace('twitch-', '')
+            try:
+                option_value = [streamlink_config[key].split('=')]
+            except:
+                option_value = streamlink_config[key]
+            session.set_plugin_option('twitch', option_key, option_value)
+        else:
+            session.set_option(key = key, value = streamlink_config[key])
+    if 'default-stream' in streamlink_config and not quality:
+        quality = streamlink_config['default-stream']
+    elif not ('default-stream' in streamlink_config) and not quality:
+        quality = 'best'
+    try:
+        streamurl = session.streams(url)[quality].url
+        cmd_str = 'open -a "quicktime player" '+streamurl+';'
+        subprocess.run(cmd_str, shell=True)
+    except:
+        print('An error occured with Streamlink.')

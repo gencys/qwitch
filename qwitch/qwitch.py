@@ -12,8 +12,9 @@ def main():
         group = cli.add_mutually_exclusive_group(required=True)
 
         cli.add_argument('channel', nargs='?', default = False)
+        cli.add_argument('quality', nargs='?', default = False)
         cli.add_argument('-d', '--debug', action = 'store_true', help= 'enable debugging.')
-        cli.add_argument('--version', action='version', version='%(prog)s 1.1.0')
+        cli.add_argument('--version', action='version', version='%(prog)s 2.0.0')
 
         group.add_argument('-l', '--last', action = 'store_true', help= 'play the most recent video of the channel.')
         group.add_argument('-V', '--Videos', action = 'store_true', help= 'list the last 20 videos of the channel.')
@@ -41,10 +42,12 @@ def main():
                 url = api.get_vod(channel_id=channel_id, token=auth_token)
                 url = url.replace('https://www.', '')
                 config.debug_log('Playing the video now...')
-                api.exec_streamlink(url=url)
+                api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
             elif args.Videos:
                 try:
-                    api.print_vod_list(channel_id=channel_id, token=auth_token)
+                    url = api.print_vod_list(channel_id=channel_id, token=auth_token)
+                    if url:
+                        api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
                 except KeyboardInterrupt:
                     exit()
                 except:
@@ -54,25 +57,21 @@ def main():
                     url = api.get_vod(channel_id=channel_id, token=auth_token, keyword=args.vod)
                     url = url.replace('https://www.', '')
                     config.debug_log('Playing the video now...')
-                    api.exec_streamlink(url=url)
+                    api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
                 except:
                     cli.error('Could not find a video that matched the keyword.')
             else:
-                try:
-                    url = 'twitch.tv/' + args.channel
-                    config.debug_log('Playing the livestream now...')
-                    api.exec_streamlink(url=url)
-                except:
-                    cli.error('Could not get the livestream feed.')
+                #try:
+                url = 'twitch.tv/' + args.channel
+                config.debug_log('Playing the livestream now...')
+                api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
+                #except:
+                #    cli.error('Could not get the livestream feed.')
         elif args.vod:
             if re.match('^[0-9]{9,10}$', args.vod):
                 url = 'twitch.tv/videos/' + args.vod
-                api.exec_streamlink(url=url)
-                cli.exit()
+                api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
         elif args.streams:
-            auth_token = config.check_auth()
-            if not auth_token:
-                cli.error('Could not authenticate in the Twitch API')
             try:
                 api.get_livestreams(token = auth_token)
             except:
