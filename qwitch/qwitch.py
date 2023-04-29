@@ -14,7 +14,7 @@ def main():
         cli.add_argument('channel', nargs='?', default = False)
         cli.add_argument('quality', nargs='?', default = False)
         cli.add_argument('-d', '--debug', action = 'store_true', help= 'enable debugging.')
-        cli.add_argument('--version', action='version', version='%(prog)s 2.0.0')
+        cli.add_argument('--version', action='version', version='%(prog)s 2.0.1')
 
         group.add_argument('-l', '--last', action = 'store_true', help= 'play the most recent video of the channel.')
         group.add_argument('-V', '--Videos', action = 'store_true', help= 'list the last 20 videos of the channel.')
@@ -61,12 +61,12 @@ def main():
                 except:
                     cli.error('Could not find a video that matched the keyword.')
             else:
-                #try:
-                url = 'twitch.tv/' + args.channel
-                config.debug_log('Playing the livestream now...')
-                api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
-                #except:
-                #    cli.error('Could not get the livestream feed.')
+                try:
+                    url = 'twitch.tv/' + args.channel
+                    config.debug_log('Playing the livestream now...')
+                    api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
+                except:
+                    cli.error('Could not get the livestream feed.')
         elif args.vod:
             if re.match('^[0-9]{9,10}$', args.vod):
                 url = 'twitch.tv/videos/' + args.vod
