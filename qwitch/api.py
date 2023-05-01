@@ -21,7 +21,7 @@ def twitch_api_get(token, url):
     return res_get.json()
 
 def get_livestreams(token):
-    with open(config.home_dir + '/qwitch/cache', 'r', encoding='utf-8') as cache:
+    with open(config.home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
             cache_json = json.loads(cache.read())
             config.debug_log('get_livestreams(): Config read:', cache_json)
     url = 'https://api.twitch.tv/helix/channels/followed?user_id=' + cache_json[0]['user_id']
@@ -45,6 +45,25 @@ def get_livestreams(token):
         print('\033[95mStreamer:\033[0m      ' + video['user_name'] + ' (\033[91m\033[1m' + video['user_login'] + '\033[0m)')
         print('\033[95mTitle:\033[0m         ' + video['title'])
         print('\033[95mGame/Category:\033[0m ' + video['game_name'])
+
+def get_follows(token):
+    with open(config.home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
+            cache_json = json.loads(cache.read())
+            config.debug_log('get_livestreams(): Config read:', cache_json)
+    url = 'https://api.twitch.tv/helix/channels/followed?user_id=' + cache_json[0]['user_id']
+    res_get = twitch_api_get(token = token, url = url)
+    res_get = res_get['data']
+    first = True
+    for video in res_get:
+        if first:
+            print('Here are the channels you follow:\n(The channel name you will need is in red)\n')
+            first = False
+        else:
+            print('-------------------------------')
+        print('\033[95mChannel Display Name:\033[0m        ' + video['broadcaster_name'])
+        print('\033[95mChannel Name:\033[0m                ' + '\033[91m\033[1m' + video['broadcaster_login'] + '\033[0m')
+        date = video['followed_at'].replace('T', ' ').replace('Z', '')
+        print('\033[95mFollowed on:\033[0m                 ' + date)
 
 def get_channel_id(channel, token):
     url = 'https://api.twitch.tv/helix/users?login=' + channel

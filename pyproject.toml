@@ -6,12 +6,34 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qwitch"
-version = "2.1.0"
+version = "2.2.0"
 description = "Stream twitch in Quicktime."
 readme = "README.md"
 authors = [{ name = "Jean-Francois Vaduret", email = "jean.francois.vaduret@gmail.com" }]
+license = {file = "LICENSE"}
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Multimedia :: Sound/Audio",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Utilities"
+]
 dependencies = [
     "requests",
     "streamlink"
 ]
 requires-python = ">=3.8"
+
+[project.urls]
+Source = "https://github.com/gencys/qwitch"
+Tracker = "https://github.com/gencys/qwitch/issues"

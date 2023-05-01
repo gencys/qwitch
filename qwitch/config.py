@@ -10,8 +10,8 @@ DEBUG = False
 
 home_dir = os.path.expanduser('~')
 home_dir += '/Library/Application Support'
-if not os.path.exists(home_dir + '/qwitch/cache'):
-    os.makedirs(os.path.dirname(home_dir + '/qwitch/cache'), exist_ok=True)
+if not os.path.exists(home_dir + '/qwitch/config.json'):
+    os.makedirs(os.path.dirname(home_dir + '/qwitch/config.json'), exist_ok=True)
 
 def debug_log(*args):
     if DEBUG:
@@ -68,9 +68,9 @@ def validate_token(token: str):
     return res_get
 
 def write_streamlink_config():
-    if os.path.exists(home_dir + '/qwitch/cache'):
+    if os.path.exists(home_dir + '/qwitch/config.json'):
         token = ask_for_token(validate = True)
-        with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as file:
+        with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as file:
             cache_json = json.loads(file.read())
         if len(cache_json) == 2:
             cache_json[1].update({'twitch-api-header': 'Authorization=OAuth ' + token})
@@ -80,14 +80,14 @@ def write_streamlink_config():
             }
             cache_json.append(config)
         config = cache_json[1]
-        with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
+        with open(home_dir + '/qwitch/config.json', 'w', encoding='utf-8') as file:
             json.dump(cache_json, file, ensure_ascii=False, indent=4)
         return config
     return False
 
 def check_streamlink_config():
     old_token = ''
-    with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as file:
+    with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as file:
         content = json.loads(file.read())
         debug_log('Content of config:', content)
     if len(content) == 2:
@@ -115,7 +115,7 @@ def check_streamlink_config():
         break
     if old_token != token:
         content[1]['twitch-api-header'] = 'Authorization=OAuth ' + token
-        with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
+        with open(home_dir + '/qwitch/config.json', 'w', encoding='utf-8') as file:
             json.dump(content, file, ensure_ascii=False, indent=4)
     debug_log('A valid auth-token was found. Proceeding...')
     return content[1]
@@ -123,19 +123,19 @@ def check_streamlink_config():
 def store_auth(data):
     now = int(time.time())
     data['requested_at'] = now - 1
-    if os.path.exists(home_dir + '/qwitch/cache'):
-        with open(home_dir + '/qwitch/cache', 'wr', encoding='utf-8') as file:
+    if os.path.exists(home_dir + '/qwitch/config.json'):
+        with open(home_dir + '/qwitch/config.json', 'wr', encoding='utf-8') as file:
             cache_json = json.loads(file.read())
             cache_json[0] = data
             json.dump(cache_json, file, ensure_ascii=False, indent=4)
     else:
-        with open(home_dir + '/qwitch/cache', 'w', encoding='utf-8') as file:
+        with open(home_dir + '/qwitch/config.json', 'w', encoding='utf-8') as file:
             data = [data]
             json.dump(data, file, ensure_ascii=False, indent=4)
 
 def check_auth():
     try:
-        with open(home_dir + '/qwitch/cache', 'r', encoding='utf-8') as cache:
+        with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
             cache_json = json.loads(cache.read())
             debug_log('check_auth(): Config read:', cache_json)
         if cache_json:

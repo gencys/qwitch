@@ -14,11 +14,12 @@ def main():
         cli.add_argument('channel', nargs='?', default = False, help= 'channel name given in red with -s/--streams. Needed to launch livestream or videos.')
         cli.add_argument('quality', nargs='?', default = False, help= 'video quality name, e.g. 720p, 1080p, best, worst, etc... (defaults to best). You can defined a default quality in the config file (see the README)')
         cli.add_argument('-d', '--debug', action = 'store_true', help= 'enable debugging.')
-        cli.add_argument('--version', action='version', version='%(prog)s 2.1.0')
+        cli.add_argument('--version', action='version', version='%(prog)s 2.2.0')
 
         group.add_argument('-l', '--last', action = 'store_true', help= 'play the most recent video of the channel.')
         group.add_argument('-V', '--Videos', action = 'store_true', help= 'list the last 20 videos of the channel.')
         group.add_argument('-s', '--streams', action = 'store_true', help= 'list the streamers you follow which are currently currently live.')
+        group.add_argument('-f', '--follows', action = 'store_true', help= 'list the streamers you follow.')
         group.add_argument('-v', '--vod', action = 'store', type = str, help= 'search for a video by keyword(s) or ID. The keyword needs to be in quotation marks and an exact match (this is not a search engine)')
         args = cli.parse_args()
 
@@ -30,7 +31,12 @@ def main():
         if args.debug:
             config.DEBUG = True
 
-        if args.channel:
+        if args.follows:
+            try:
+                api.get_follows(token = auth_token)
+            except:
+                cli.error('Could not get the list of followed streamers.')
+        elif args.channel:
             try:
                 channel_id = api.get_channel_id(channel = args.channel, token = auth_token)
             except RuntimeError:
