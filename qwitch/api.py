@@ -38,13 +38,13 @@ def get_livestreams(token):
     first = True
     for video in res_get:
         if first:
-            print('Here are the current livestreams you follow:\n')
+            print('Here are the current livestreams you follow:\n(The channel name you will need is in red)\n')
             first = False
         else:
             print('\n-------------------------------------------------------------------\n')
-        print('Streamer:      ' + video['user_name'] + ' (' + video['user_login'] + ')')
-        print('Title:         ' + video['title'])
-        print('Game/Category: ' + video['game_name'])
+        print('\033[95mStreamer:\033[0m      ' + video['user_name'] + ' (\033[91m\033[1m' + video['user_login'] + '\033[0m)')
+        print('\033[95mTitle:\033[0m         ' + video['title'])
+        print('\033[95mGame/Category:\033[0m ' + video['game_name'])
 
 def get_channel_id(channel, token):
     url = 'https://api.twitch.tv/helix/users?login=' + channel
@@ -59,7 +59,7 @@ def get_vod(channel_id, token, keyword = ''):
     url = 'https://api.twitch.tv/helix/videos?user_id=' + channel_id + '&type=archive'
     res_get = twitch_api_get(token = token, url = url)
     if keyword == '':
-        print('Selected video: ' + res_get['data'][0]['title'])
+        print('\033[95mSelected video:\033[0m ' + res_get['data'][0]['title'])
         resp = input('Play this video ? [y/N] ')
         if resp.lower() != 'y':
             exit()
@@ -68,7 +68,7 @@ def get_vod(channel_id, token, keyword = ''):
     while res_get['data'][i]:
         match = res_get['data'][i]['title'].lower().find(keyword.lower())
         if match != -1:
-            print('Selected video: ' + res_get['data'][i]['title'])
+            print('\033[95mSelected video:\033[0m ' + res_get['data'][i]['title'])
             resp = input('Play this video ? [y/N] ')
             if resp.lower() != 'y':
                 exit()
@@ -87,11 +87,12 @@ def print_vod_list(channel_id, token):
             first = False
         else:
             print('-------------------------------')
-        print('Title:        ' + video['title'])
+        print('\033[95mTitle:\033[0m        ' + video['title'])
         date = video['published_at'].replace('T', ' ').replace('Z', '')
-        print('Published on: ' + date)
-        print('Duration:     ' + video['duration'])
-        print('URL:          ' + video['url'])
+        print('\033[95mPublished on:\033[0m ' + date)
+        print('\033[95mDuration:\033[0m     ' + video['duration'])
+        print('\033[95mURL:\033[0m          ' + video['url'])
+        print('\033[95mVideo ID:\033[0m          ' + video['id'])
         resp = input('\nPlay this video? [y/N] ')
         if str(resp).lower() == 'y':
             url = video['url'].replace('https://www.', '')
