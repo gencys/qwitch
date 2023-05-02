@@ -5,11 +5,21 @@ Qwitch is a CLI which allows you to watch streams and videos from Twitch directl
 Avoid using unoptimized websites and enjoy Twitch simply via a few commands and the fast and reliable Quicktime player.
 This also allows you to AirPlay your favorite livestreams and videos on other devices.
 
+## Requirements
+
+To install Qwitch you will need to have installed Python >= 3.8 and the XCode Command Line Tools.
+
+What's beautiful is that you can get these two requirement installed with only one command since XCode Command Line Tools will also install a compatible version of python3. All you need to do is run the following command
+```
+xcode-select --install
+```
+This will prompt you to install XCode Command Line Tools on your environment. Now you should be able to run python and pip commands.
+
 ## Installation
 
 Qwitch is available via pip only. Simply run the following command to install it:
 ```
-pip install qwitch
+pip3 install --user qwitch
 ```
 
 Once that's done, you'll be able to use Qwitch directly in the terminal. On the first use, the CLI will ask you two things:
