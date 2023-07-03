@@ -7,6 +7,7 @@ import time
 import requests
 
 DEBUG = False
+VER = '2.3.0'
 
 home_dir = os.path.expanduser('~')
 home_dir += '/Library/Application Support'
@@ -72,7 +73,7 @@ def write_streamlink_config():
         token = ask_for_token(validate = True)
         with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as file:
             cache_json = json.loads(file.read())
-        if len(cache_json) == 2:
+        if len(cache_json) >= 2:
             cache_json[1].update({'twitch-api-header': 'Authorization=OAuth ' + token})
         else:
             config = {
@@ -90,7 +91,7 @@ def check_streamlink_config():
     with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as file:
         content = json.loads(file.read())
         debug_log('Content of config:', content)
-    if len(content) == 2:
+    if len(content) >= 2:
         if 'twitch-api-header' in content[1]:
             token = re.findall('Authorization=OAuth\s([a-z0-9]{30})', content[1]['twitch-api-header'])
         else:
@@ -155,3 +156,26 @@ def check_auth():
         if token:
             return token
         return False
+    
+# Get Qwitch's latest version from pypi.org's API
+
+def get_package_ver_and_compare():
+    with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
+        cache_json = json.loads(cache.read())
+    now = int(time.time())
+    if len(cache_json) >= 3:
+        if 'last_update_check' in cache_json[2]:
+            time_to_check = cache_json[2]['last_update_check'] + 86400
+            if  now < time_to_check:
+                return False
+        cache_json[2].update({'last_update_check': now})
+    else:
+        cache_json.append({'last_update_check': now})
+    with open(home_dir + '/qwitch/config.json', 'w', encoding='utf-8') as file:
+        json.dump(cache_json, file, ensure_ascii=False, indent=4)
+    res_get = requests.get(url = 'https://pypi.org/pypi/qwitch/json').json()
+    remote_ver = res_get['info']['version']
+    if remote_ver != VER:
+        print('A new version of Qwitch is available!\nPlease update Qwitch by running:\n    \033[91m\033[1mpip install qwitch --upgrade\033[0m')
+        return True
+    return False

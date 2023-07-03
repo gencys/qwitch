@@ -14,7 +14,7 @@ def main():
         cli.add_argument('channel', nargs='?', default = False, help= 'channel name given in red with -s/--streams. Needed to launch livestream or videos.')
         cli.add_argument('quality', nargs='?', default = False, help= 'video quality name, e.g. 720p, 1080p, best, worst, etc... (defaults to best). You can defined a default quality in the config file (see the README)')
         cli.add_argument('-d', '--debug', action = 'store_true', help= 'enable debugging.')
-        cli.add_argument('--version', action='version', version='%(prog)s 2.2.3')
+        cli.add_argument('--version', action='version', version = f'%(prog)s {config.VER}')
 
         group.add_argument('-l', '--last', action = 'store_true', help= 'play the most recent video of the channel.')
         group.add_argument('-V', '--Videos', action = 'store_true', help= 'list the last 20 videos of the channel.')
@@ -23,10 +23,19 @@ def main():
         group.add_argument('-v', '--vod', action = 'store', type = str, help= 'search for a video by keyword(s) or ID. The keyword needs to be in quotation marks and an exact match (this is not a search engine)')
         args = cli.parse_args()
 
-        auth_token = config.check_auth()
-        streamlink_config = config.check_streamlink_config()
-        if not auth_token:
-            cli.error('Could not authenticate in the Twitch API')
+        try:
+            auth_token = config.check_auth()
+            streamlink_config = config.check_streamlink_config()
+            if not auth_token:
+                cli.error('Could not authenticate in the Twitch API.')
+        except:
+            config.debug_log('An error occured when trying to authenticate in the Twitch API.\nLet us heck for an update which may fix the issue...')
+            if (config.get_package_ver_and_compare()):
+                exit()
+            cli.error('Could not authenticate in the Twitch API.')
+        
+        if (config.get_package_ver_and_compare()):
+            exit()
 
         if args.debug:
             config.DEBUG = True
