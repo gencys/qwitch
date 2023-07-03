@@ -124,7 +124,7 @@ def store_auth(data):
     now = int(time.time())
     data['requested_at'] = now - 1
     if os.path.exists(home_dir + '/qwitch/config.json'):
-        with open(home_dir + '/qwitch/config.json', 'wr', encoding='utf-8') as file:
+        with open(home_dir + '/qwitch/config.json', 'r+', encoding='utf-8') as file:
             cache_json = json.loads(file.read())
             cache_json[0] = data
             json.dump(cache_json, file, ensure_ascii=False, indent=4)
