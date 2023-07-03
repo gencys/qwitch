@@ -14,7 +14,7 @@ def main():
         cli.add_argument('channel', nargs='?', default = False, help= 'channel name given in red with -s/--streams. Needed to launch livestream or videos.')
         cli.add_argument('quality', nargs='?', default = False, help= 'video quality name, e.g. 720p, 1080p, best, worst, etc... (defaults to best). You can defined a default quality in the config file (see the README)')
         cli.add_argument('-d', '--debug', action = 'store_true', help= 'enable debugging.')
-        cli.add_argument('--version', action='version', version='%(prog)s 2.2.2')
+        cli.add_argument('--version', action='version', version='%(prog)s 2.2.3')
 
         group.add_argument('-l', '--last', action = 'store_true', help= 'play the most recent video of the channel.')
         group.add_argument('-V', '--Videos', action = 'store_true', help= 'list the last 20 videos of the channel.')
