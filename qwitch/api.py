@@ -111,7 +111,7 @@ def print_vod_list(channel_id, token):
         print('\033[95mPublished on:\033[0m ' + date)
         print('\033[95mDuration:\033[0m     ' + video['duration'])
         print('\033[95mURL:\033[0m          ' + video['url'])
-        print('\033[95mVideo ID:\033[0m          ' + video['id'])
+        print('\033[95mVideo ID:\033[0m     ' + video['id'])
         resp = input('\nPlay this video? [y/N] ')
         if str(resp).lower() == 'y':
             url = video['url'].replace('https://www.', '')
