@@ -7,13 +7,18 @@ import time
 import requests
 
 DEBUG = False
-VER = '2.3.0'
+VER = '2.4.0'
 
 home_dir = os.path.expanduser('~')
 home_dir += '/Library/Application Support'
 if not os.path.exists(home_dir + '/qwitch/config.json'):
     os.makedirs(os.path.dirname(home_dir + '/qwitch/config.json'), exist_ok=True)
 
+##
+# debug_log()
+#
+# Print given args when debugging is enabled
+##
 def debug_log(*args):
     if DEBUG:
         print('\n')
@@ -21,6 +26,17 @@ def debug_log(*args):
             print(arg)
         print('\n')
 
+##
+# ask_for_token()
+#
+# Asks the user for their auth-token, regex it to confirm it's a token-like string
+# it can also validate the token
+#
+# @param tries integer number of maximum retries
+# @param validate boolean tells the function to validate the token or not
+#
+# @return string the token that was parsed
+##
 def ask_for_token(tries = 3, validate = False):
     i=0
     token = input('Enter your auth-token cookie value: ')
@@ -38,10 +54,18 @@ def ask_for_token(tries = 3, validate = False):
             if res_get.status_code == 401:
                 token = input('\nThe token expired or is invalid.\nEnter a new one: ')
                 debug_log('Got token from input:', token)
+                i += 1
                 continue
         break
     return token
 
+##
+# auth_api()
+#
+# Opens the twitch auth page to get user token. Parses token from URL and stores it in the config file
+#
+# @return string the token that was parsed
+##
 def auth_api():
     print('A browser page will open. Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
     time.sleep(5)
@@ -59,6 +83,15 @@ def auth_api():
     print('You can close the page that was opened.')
     return token[0]
 
+##
+# validate_token()
+#
+# Sends a request to the twitch API to validate the token string
+#
+# @param token string sent to the API that needs to be validated
+#
+# @return request object of the get request ran
+##
 def validate_token(token: str):
     url = 'https://id.twitch.tv/oauth2/validate'
     header = {
@@ -68,6 +101,13 @@ def validate_token(token: str):
     debug_log('Validation response:', res_get.json())
     return res_get
 
+##
+# write_streamlink_config()
+#
+# Writes the auth-token config to the config file after asking for the token
+#
+# @return config dict if the config file exists, false otherwise
+##
 def write_streamlink_config():
     if os.path.exists(home_dir + '/qwitch/config.json'):
         token = ask_for_token(validate = True)
@@ -86,6 +126,14 @@ def write_streamlink_config():
         return config
     return False
 
+##
+# check_streamlink_config()
+#
+# Reads the auth-token config in the config file after verifying that the config is valid
+# updates/creates the config if necessary
+#
+# @return the config dict for the auth-token
+##
 def check_streamlink_config():
     old_token = ''
     with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as file:
@@ -121,6 +169,13 @@ def check_streamlink_config():
     debug_log('A valid auth-token was found. Proceeding...')
     return content[1]
 
+##
+# store_auth()
+#
+# Writes the twitch token config to the config file
+#
+# @param data dict of the validation request for the twitch API token
+##
 def store_auth(data):
     now = int(time.time())
     data['requested_at'] = now - 1
@@ -135,6 +190,13 @@ def store_auth(data):
             data = [data]
             json.dump(data, file, ensure_ascii=False, indent=4)
 
+##
+# check_auth()
+#
+# Reads and validates the config for the twitch API token
+#
+# @return string token which was parsed
+##
 def check_auth():
     try:
         with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
@@ -156,9 +218,14 @@ def check_auth():
         if token:
             return token
         return False
-    
-# Get Qwitch's latest version from pypi.org's API
 
+##
+# check_auth()
+#
+# Get Qwitch's latest version from pypi.org's API, compares it to current version and advises if new version is available
+#
+# @return boolean True if newer version is available, False otherwise
+##
 def get_package_ver_and_compare():
     with open(home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
         cache_json = json.loads(cache.read())

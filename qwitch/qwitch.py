@@ -21,6 +21,7 @@ def main():
         group.add_argument('-s', '--streams', action = 'store_true', help= 'list the streamers you follow which are currently currently live.')
         group.add_argument('-f', '--follows', action = 'store_true', help= 'list the streamers you follow.')
         group.add_argument('-v', '--vod', action = 'store', type = str, help= 'search for a video by keyword(s) or ID. The keyword needs to be in quotation marks and an exact match (this is not a search engine)')
+        group.add_argument('-t', '--token', action = 'store_true', help= 'change the auth-token of you twitch account in the qwitch config file.')
         args = cli.parse_args()
 
         try:
@@ -40,7 +41,9 @@ def main():
         if args.debug:
             config.DEBUG = True
 
-        if args.follows:
+        if args.token:
+            config.write_streamlink_config()
+        elif args.follows:
             try:
                 api.get_follows(token = auth_token)
             except:
