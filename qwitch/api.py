@@ -207,6 +207,6 @@ def exec_streamlink(url, streamlink_config, quality = None):
             'An error occured with Streamlink.\n',
             'You may not be subscribed to the twitch channel you are trying to access.',
             'Alternatively, check that you are still logged into your account on twitch.com','If not, get a new auth-token and update it by running:',
-            '    qwitch -t <your new auth-token>',
+            '    qwitch -t',
             sep='\n'
         )
