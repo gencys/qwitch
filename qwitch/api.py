@@ -7,6 +7,16 @@ from . import config
 
 CLIENT_ID = 's3e3q8l6ub08tf7ka9tg2myvetf5cf'
 
+##
+# twitch_api_get()
+#
+# Send a GET request to the Twitch API with Qwitch's client ID
+#
+# @param token string auth token gathered from authenticating user
+# @param url string url on which to perform the get request
+#
+# @return dict containing the GET request's response
+##
 def twitch_api_get(token, url):
     headers = {
         'Client-Id': CLIENT_ID,
@@ -20,6 +30,15 @@ def twitch_api_get(token, url):
         exit()
     return res_get.json()
 
+##
+# get_livestreams()
+#
+# Gets and prints followed channels currently streaming
+#
+# @param token string auth token gathered from authenticating user
+#
+# @return nothing
+##
 def get_livestreams(token):
     with open(config.home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
             cache_json = json.loads(cache.read())
@@ -46,6 +65,15 @@ def get_livestreams(token):
         print('\033[95mTitle:\033[0m         ' + video['title'])
         print('\033[95mGame/Category:\033[0m ' + video['game_name'])
 
+##
+# get_follows()
+#
+# Gets and prints followed channels
+#
+# @param token string auth token gathered from authenticating user
+#
+# @return nothing
+##
 def get_follows(token):
     with open(config.home_dir + '/qwitch/config.json', 'r', encoding='utf-8') as cache:
             cache_json = json.loads(cache.read())
@@ -65,6 +93,18 @@ def get_follows(token):
         date = video['followed_at'].replace('T', ' ').replace('Z', '')
         print('\033[95mFollowed on:\033[0m                 ' + date)
 
+##
+# get_channel_id()
+#
+# Gets the twitch channel ID for the given channel name
+#
+# @param token string auth token gathered from authenticating user
+# @param channel string channel name for which to get the channel ID
+#
+# @return integer the retrieved channel ID
+#
+# @remark this will raise a runtime error if the channel ID was not in the server's response
+##
 def get_channel_id(channel, token):
     url = 'https://api.twitch.tv/helix/users?login=' + channel
     res_get = twitch_api_get(token = token, url = url)
@@ -95,6 +135,17 @@ def get_vod(channel_id, token, keyword = ''):
         i += 1
     raise RuntimeError
 
+##
+# print_vod_list()
+#
+# Gets and prints the 20 latest VODs of the channel
+#
+# @param token string auth token gathered from authenticating user
+# @param channel_id integer channel ID for which to get the VOD list
+#
+# @return string URL of the video that was chosen to be played
+#         none otherwise
+##
 def print_vod_list(channel_id, token):
     url = 'https://api.twitch.tv/helix/videos?user_id=' + channel_id + '&type=archive'
     res_get = twitch_api_get(token = token, url = url)
@@ -118,6 +169,17 @@ def print_vod_list(channel_id, token):
             return url
     return None
 
+##
+# exec_streamlink()
+#
+# Uses Streamlink to get the video stream link and launches Quicktime with that link
+#
+# @param url string url of the twitch video/livestream to play
+# @param streamlink_config dict containing streamlink config properties (e.g. the auth-token)
+# @param quality string video quality at which to play the video
+#
+# @return nothing
+##
 def exec_streamlink(url, streamlink_config, quality = None):
     session = streamlink.Streamlink()
     for key in streamlink_config:
@@ -141,4 +203,10 @@ def exec_streamlink(url, streamlink_config, quality = None):
         cmd_str = 'open -a "quicktime player" '+streamurl+';'
         subprocess.run(cmd_str, shell=True)
     except:
-        print('An error occured with Streamlink.')
+        print(
+            'An error occured with Streamlink.\n',
+            'You may not be subscribed to the twitch channel you are trying to access.',
+            'Alternatively, check that you are still logged into your account on twitch.com','If not, get a new auth-token and update it by running:',
+            '    qwitch -t <your new auth-token>',
+            sep='\n'
+        )
