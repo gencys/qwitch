@@ -68,8 +68,8 @@ def main():
                         api.exec_streamlink(url = url, streamlink_config = streamlink_config, quality = args.quality)
                 except KeyboardInterrupt:
                     exit()
-                except:
-                    cli.error('Could not retrieve the video list')
+                # except:
+                #     cli.error('Could not retrieve the video list')
             elif args.vod:
                 try:
                     url = api.get_vod(channel_id=channel_id, token=auth_token, keyword=args.vod)

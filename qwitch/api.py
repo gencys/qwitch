@@ -2,7 +2,8 @@ import requests
 import json
 import subprocess
 import re
-import streamlink
+from streamlink.options import Options
+from streamlink.session import Streamlink
 from . import config
 
 CLIENT_ID = 's3e3q8l6ub08tf7ka9tg2myvetf5cf'
@@ -181,7 +182,8 @@ def print_vod_list(channel_id, token):
 # @return nothing
 ##
 def exec_streamlink(url, streamlink_config, quality = None):
-    session = streamlink.Streamlink()
+    session = Streamlink()
+    options = Options()
     for key in streamlink_config:
         if key == 'default-stream':
             continue
@@ -191,7 +193,7 @@ def exec_streamlink(url, streamlink_config, quality = None):
                 option_value = [streamlink_config[key].split('=')]
             except:
                 option_value = streamlink_config[key]
-            session.set_plugin_option('twitch', option_key, option_value)
+            options.set(option_key, option_value)
         else:
             session.set_option(key = key, value = streamlink_config[key])
     if 'default-stream' in streamlink_config and not quality:
@@ -199,7 +201,7 @@ def exec_streamlink(url, streamlink_config, quality = None):
     elif not ('default-stream' in streamlink_config) and not quality:
         quality = 'best'
     try:
-        streamurl = session.streams(url)[quality].url
+        streamurl = session.streams(url, options)[quality].url
         cmd_str = 'open -a "quicktime player" '+streamurl+';'
         subprocess.run(cmd_str, shell=True)
     except:

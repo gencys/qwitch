@@ -7,7 +7,7 @@ import time
 import requests
 
 DEBUG = False
-VER = '2.4.1'
+VER = '2.4.2'
 
 home_dir = os.path.expanduser('~')
 home_dir += '/Library/Application Support'
