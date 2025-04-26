@@ -124,7 +124,9 @@ class TwitchAPI:
                 url += "&user_id=" + follows[i + j]["broadcaster_id"]
                 j += 1
 
-            self.get(url=url)
+            if not self.get(url=url):
+                print("\033[91m\033[1mNo one you follow is currently streaming.\033[0m")
+                return
 
             for video in self.last_data:
                 print("\033[95mStreamer:\033[0m      " + video["user_name"] + " (\033[91m\033[1m" + video["user_login"] + "\033[0m)")
