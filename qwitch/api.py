@@ -2,11 +2,28 @@ import requests
 import json
 import subprocess
 import re
+import sys
+import os
 from streamlink.options import Options
 from streamlink.session import Streamlink
 from . import config
 
 CLIENT_ID = "s3e3q8l6ub08tf7ka9tg2myvetf5cf"
+
+if sys.stdin.isatty() and not os.environ.get('QWITCH_SERVER', ''):
+    C = {
+        'purple': '\033[95m',
+        'red': '\033[91m',
+        'bold': '\033[1m',
+        'esc': '\033[0m'
+    }
+else:
+    C = {
+        'purple': '',
+        'red': '',
+        'bold': '',
+        'esc': ''
+    }
 
 
 class TwitchAPI:
@@ -125,13 +142,13 @@ class TwitchAPI:
                 j += 1
 
             if not self.get(url=url):
-                print("\033[91m\033[1mNo one you follow is currently streaming.\033[0m")
+                print(f"{C['red']}{C['bold']}No one you follow is currently streaming.{C['esc']}")
                 return
 
             for video in self.last_data:
-                print("\033[95mStreamer:\033[0m      " + video["user_name"] + " (\033[91m\033[1m" + video["user_login"] + "\033[0m)")
-                print("\033[95mTitle:\033[0m         " + video["title"])
-                print("\033[95mGame/Category:\033[0m " + video["game_name"])
+                print(f"{C['purple']}Streamer:{C['esc']}      {video["user_name"]} ({C['red']}{C['bold']}{video["user_login"]}{C['esc']})")
+                print(f"{C['purple']}Title:{C['esc']}         {video["title"]}")
+                print(f"{C['purple']}Game/Category:{C['esc']} {video["game_name"]}")
                 print("\n-------------------------------------------------------------------\n")
 
             i += j + 1
@@ -159,10 +176,10 @@ class TwitchAPI:
         )
 
         for video in self.last_data:
-            print("\033[95mChannel Display Name:\033[0m        " + video["broadcaster_name"])
-            print("\033[95mChannel Name:\033[0m                " + "\033[91m\033[1m" + video["broadcaster_login"] + "\033[0m")
+            print(f"{C['purple']}Channel Display Name:{C['esc']}        {video["broadcaster_name"]}")
+            print(f"{C['purple']}Channel Name:{C['esc']}                {C['red']}{C['bold']}{video["broadcaster_login"]}{C['esc']}")
             date = video["followed_at"].replace("T", " ").replace("Z", "")
-            print("\033[95mFollowed on:\033[0m                 " + date)
+            print(f"{C['purple']}Followed on:{C['esc']}                 {date}")
             print("-------------------------------")
 
     ##
@@ -195,7 +212,10 @@ class TwitchAPI:
             exit()
 
         if keyword == "":
-            print("\033[95mSelected video:\033[0m " + self.last_data[0]["title"])
+            print(f"{C['purple']}Selected video:{C['esc']} {self.last_data[0]["title"]}")
+            if os.environ.get('QWITCH_SERVER', ''):
+                return self.last_data[0]["url"]
+
             resp = input("Play this video ? [y/N] ")
             if resp.lower() != "y":
                 exit()
@@ -207,7 +227,10 @@ class TwitchAPI:
             for vod in self.last_data:
                 match = vod["title"].lower().find(keyword.lower())
                 if match != -1:
-                    print("\033[95mSelected video:\033[0m " + vod["title"])
+                    print(f"{C['purple']}Selected video:{C['esc']} {vod["title"]}")
+                    if os.environ.get('QWITCH_SERVER', ''):
+                        return vod["url"]
+
                     resp = input("Play this video ? [y/N] ")
                     if resp.lower() != "y":
                         exit()
@@ -246,17 +269,24 @@ class TwitchAPI:
 
         while True:
             for video in self.last_data:
-                print("\033[95mTitle:\033[0m        " + video["title"])
+                print(f"{C['purple']}Title:{C['esc']}        {video["title"]}")
                 date = video["published_at"].replace("T", " ").replace("Z", "")
-                print("\033[95mPublished on:\033[0m " + date)
-                print("\033[95mDuration:\033[0m     " + video["duration"])
-                print("\033[95mURL:\033[0m          " + video["url"])
-                print("\033[95mVideo ID:\033[0m     " + video["id"])
+                print(f"{C['purple']}Published on:{C['esc']} {date}")
+                print(f"{C['purple']}Duration:{C['esc']}     {video["duration"]}")
+                print(f"{C['purple']}URL:{C['esc']}          {video["url"]}")
+                print(f"{C['purple']}Video ID:{C['esc']}     {video["id"]}")
+
+                if os.environ.get('QWITCH_SERVER', ''):
+                    continue
+
                 resp = input("\nPlay this video? [y/N] ")
                 if str(resp).lower() == "y":
                     url = video["url"].replace("https://www.", "")
                     return url
                 print("-------------------------------")
+
+            if os.environ.get('QWITCH_SERVER', ''):
+                exit()
 
             resp = input("Next page ? [y/N] ")
             if resp.lower() != "y":
@@ -304,6 +334,10 @@ def exec_streamlink(url, streamlink_config, quality=None):
 
     try:
         streamurl = session.streams(url, options)[quality].url
+        if os.environ.get('QWITCH_SERVER', ''):
+            print(streamurl)
+            return
+
         cmd_str = 'open -a "quicktime player" ' + streamurl + ";"
         subprocess.run(cmd_str, shell=True)
     except:
