@@ -146,9 +146,9 @@ class TwitchAPI:
                 return
 
             for video in self.last_data:
-                print(f"{C['purple']}Streamer:{C['esc']}      {video["user_name"]} ({C['red']}{C['bold']}{video["user_login"]}{C['esc']})")
-                print(f"{C['purple']}Title:{C['esc']}         {video["title"]}")
-                print(f"{C['purple']}Game/Category:{C['esc']} {video["game_name"]}")
+                print(f"{C['purple']}Streamer:{C['esc']}      {video['user_name']} ({C['red']}{C['bold']}{video['user_login']}{C['esc']})")
+                print(f"{C['purple']}Title:{C['esc']}         {video['title']}")
+                print(f"{C['purple']}Game/Category:{C['esc']} {video['game_name']}")
                 print("\n-------------------------------------------------------------------\n")
 
             i += j + 1
@@ -176,8 +176,8 @@ class TwitchAPI:
         )
 
         for video in self.last_data:
-            print(f"{C['purple']}Channel Display Name:{C['esc']}        {video["broadcaster_name"]}")
-            print(f"{C['purple']}Channel Name:{C['esc']}                {C['red']}{C['bold']}{video["broadcaster_login"]}{C['esc']}")
+            print(f"{C['purple']}Channel Display Name:{C['esc']}        {video['broadcaster_name']}")
+            print(f"{C['purple']}Channel Name:{C['esc']}                {C['red']}{C['bold']}{video['broadcaster_login']}{C['esc']}")
             date = video["followed_at"].replace("T", " ").replace("Z", "")
             print(f"{C['purple']}Followed on:{C['esc']}                 {date}")
             print("-------------------------------")
@@ -212,7 +212,7 @@ class TwitchAPI:
             exit()
 
         if keyword == "":
-            print(f"{C['purple']}Selected video:{C['esc']} {self.last_data[0]["title"]}")
+            print(f"{C['purple']}Selected video:{C['esc']} {self.last_data[0]['title']}")
             if os.environ.get('QWITCH_SERVER', ''):
                 return self.last_data[0]["url"]
 
@@ -227,7 +227,7 @@ class TwitchAPI:
             for vod in self.last_data:
                 match = vod["title"].lower().find(keyword.lower())
                 if match != -1:
-                    print(f"{C['purple']}Selected video:{C['esc']} {vod["title"]}")
+                    print(f"{C['purple']}Selected video:{C['esc']} {vod['title']}")
                     if os.environ.get('QWITCH_SERVER', ''):
                         return vod["url"]
 
@@ -269,12 +269,12 @@ class TwitchAPI:
 
         while True:
             for video in self.last_data:
-                print(f"{C['purple']}Title:{C['esc']}        {video["title"]}")
+                print(f"{C['purple']}Title:{C['esc']}        {video['title']}")
                 date = video["published_at"].replace("T", " ").replace("Z", "")
                 print(f"{C['purple']}Published on:{C['esc']} {date}")
-                print(f"{C['purple']}Duration:{C['esc']}     {video["duration"]}")
-                print(f"{C['purple']}URL:{C['esc']}          {video["url"]}")
-                print(f"{C['purple']}Video ID:{C['esc']}     {video["id"]}")
+                print(f"{C['purple']}Duration:{C['esc']}     {video['duration']}")
+                print(f"{C['purple']}URL:{C['esc']}          {video['url']}")
+                print(f"{C['purple']}Video ID:{C['esc']}     {video['id']}")
 
                 if os.environ.get('QWITCH_SERVER', ''):
                     continue
