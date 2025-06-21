@@ -7,7 +7,7 @@ import time
 import requests
 
 DEBUG = False
-VER = '2.5.2'
+VER = '2.5.3'
 
 home_dir = os.path.expanduser('~')
 if os.path.exists(os.path.join(home_dir, 'Library/Application Support')):
