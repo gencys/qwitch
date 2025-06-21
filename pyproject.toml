@@ -10,10 +10,9 @@ dynamic = ["version"]
 description = "Stream twitch in Quicktime."
 readme = "README.md"
 authors = [{ name = "Jean-Francois Vaduret", email = "jean.francois.vaduret@gmail.com" }]
-license = {file = "LICENSE"}
+license = "MIT"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
-  "License :: OSI Approved :: MIT License",
   "Environment :: Console",
   "Intended Audience :: End Users/Desktop",
   "Operating System :: MacOS",
@@ -37,6 +36,9 @@ requires-python = ">=3.8"
 [project.urls]
 Source = "https://github.com/gencys/qwitch"
 Tracker = "https://github.com/gencys/qwitch/issues"
+
+[tool.setuptools]
+packages = ["qwitch"]
 
 [tool.setuptools.dynamic]
 version = {attr = "qwitch.config.VER"}

@@ -7,12 +7,16 @@ import time
 import requests
 
 DEBUG = False
-VER = '2.5.1'
+VER = '2.5.2'
 
 home_dir = os.path.expanduser('~')
-home_dir += '/Library/Application Support'
-if not os.path.exists(home_dir + '/qwitch/config.json'):
-    os.makedirs(os.path.dirname(home_dir + '/qwitch/config.json'), exist_ok=True)
+if os.path.exists(os.path.join(home_dir, 'Library/Application Support')):
+    home_dir = os.path.join(home_dir, 'Library/Application Support')
+else:
+    home_dir = os.path.join(home_dir, '.config')
+
+if not os.path.exists(os.path.join(home_dir, 'qwitch')):
+    os.makedirs(os.path.join(home_dir, 'qwitch'), exist_ok=True)
 
 ##
 # debug_log()
@@ -67,11 +71,15 @@ def ask_for_token(tries = 3, validate = False):
 # @return string the token that was parsed
 ##
 def auth_api():
-    print('A browser page will open. Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
-    time.sleep(5)
-    webbrowser.open('https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&redirect_uri=http://localhost:3000&scope=user_read+user_subscriptions+user%3Aread%3Afollows', new=1, autoraise=True)
+    if os.environ.get('QWITCH_SERVER', ''):
+        print('Go to:\nhttps://id.twitch.tv/oauth2/authorize?response_type=token&client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&redirect_uri=http://localhost:3000&scope=user_read+user_subscriptions+user%3Aread%3Afollows')
+        print('Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
+    else:
+        print('A browser page will open. Connect with your account to authorize the app.\nOnce done, copy the full URL and paste it below.')
+        time.sleep(5)
+        webbrowser.open('https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=s3e3q8l6ub08tf7ka9tg2myvetf5cf&redirect_uri=http://localhost:3000&scope=user_read+user_subscriptions+user%3Aread%3Afollows', new=1, autoraise=True)
     auth_url = input('Enter the full URL here: ')
-    token = re.findall('access_token=([a-z0-9]{30})\&scope', auth_url)
+    token = re.findall(r'access_token=([a-z0-9]{30})\&scope', auth_url)
     debug_log('Parsed token: ', token)
     auth_data = validate_token(token=token[0])
     if auth_data.status_code == 401:
@@ -141,7 +149,7 @@ def check_streamlink_config():
         debug_log('Content of config:', content)
     if len(content) >= 2:
         if 'twitch-api-header' in content[1]:
-            token = re.findall('Authorization=OAuth\s([a-z0-9]{30})', content[1]['twitch-api-header'])
+            token = re.findall(r'Authorization=OAuth\s([a-z0-9]{30})', content[1]['twitch-api-header'])
         else:
             config = write_streamlink_config()
             return config
